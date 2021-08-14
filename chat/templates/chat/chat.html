@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign up{% endblock %}
+{% block content %}
+<style>
+  body {
+    font-family: sans-serif;
+  }
+  #app {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  .messages {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .message {
+    margin-bottom: 1em;
+    padding: .5em;
+    border: 1px solid lightgray;
+  }
+  .message .from,
+  .message .text,
+  .message .time {
+    margin: 0;
+  }
+
+  .message .from {
+    font-weight: 600;
+    color: #444;
+  }
+  .message .time {
+    color: gray;
+    text-align: end;
+    line-height: 1;
+  }
+  input {
+    display: block;
+    font-size: inherit;
+    line-heigh: 1.5;
+    padding: 0 .5em;
+  }
+  .message-form {
+    display: flex;
+  }
+  .message-form .input {
+    flex: 1;
+    margin-right: .5em;
+  }
+  [v-cloak] {
+    visibility: hidden;
+  }
+  [v-cloak]::before {
+    content: 'loading';
+    visibility: visible;
+  }
+
+</style>
+<div id="app" v-cloak>
+  <div v-if="messages.length == 0">
+    loading
+  </div>
+  <div v-else class="messages">
+    <div v-for="message in messages" class="message">
+      <h5 class="from">${message.owner.username}</h5>
+      <p class="text">${message.text}</p>
+      <p class="time">${datetime(message.created_at)}</p>
+    </div>
+  </div>
+  <form class="message-form" @submit.prevent="sendMessage">
+    <input v-model="text" class="input" type="text">
+    <button type="submit" :disabled="text.length == 0">Send</button>
+  </form>
+</div>
+<script src="https://unpkg.com/vue@3"></script>
+<script>
+Vue.createApp({
+  compilerOptions: {
+    delimiters: ['${', '}'],
+  },
+  data() {
+    return {
+      messages: [],
+      text: '',
+      sendingMessage: null,
+    }
+  },
+  methods: {
+    startPolling() {
+      const offset = this.messages.length
+        ? this.messages[this.messages.length - 1].id + 1
+        : 0
+      fetch(`/messages/?offset=${offset}`)
+      .then(res => res.json())
+      .then(data => {
+        this.messages = [...this.messages, ...data]
+        setTimeout(this.startPolling)
+      }, err => alert('Network error'))
+    },
+    datetime(val) {
+      const date = new Date(val)
+      const today = new Date
+      if (
+        date.getDate() == today.getDate()
+        && date.getMonth() == today.getMonth()
+        && date.getFullYear() == today.getFullYear()
+      ) {
+        return `${date.getHours()}:${date.getMinutes()}`
+      }
+    },
+    sendMessage(e) {
+      this.sendingMessage = {text: this.text}
+      this.text = ''
+      fetch('/messages/', {
+        method: 'POST',
+        body: JSON.stringify(this.sendingMessage)
+      })
+      .then(res => {
+        if (!res.ok) {
+          alert('Error sending message')
+        }
+      }, err => alert('Network error'))
+      .finally(() => this.sendingMessage = null)
+    }
+  },
+  created() {
+    fetch('/messages/')
+    .then(res => res.json())
+    .then(data => {
+      this.messages = data
+      this.startPolling()
+    }, err => alert('Network error'))
+  }
+})
+.mount('#app')
+</script>
+{% endblock %}
