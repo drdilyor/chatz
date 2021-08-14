@@ -130,3 +130,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 if os.environ.get('IS_HEROKU', ''):
     import django_heroku
     django_heroku.settings(locals())
+    DEBUG = False

@@ -8,5 +8,6 @@
   <p>Password: {{ form.password1 }}</p>
   <p>Confirm: {{ form.password2 }}</p>
   <p><button type="submit">Sign up</button></p>
+  <p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
 </form>
 {% endblock %}

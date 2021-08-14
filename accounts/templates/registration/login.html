@@ -8,5 +8,6 @@
   <p>Password: {{ form.password }}</p>
   <input type="hidden" name="next" value="/">
   <p><button type="submit">Login</button></p>
+  <p>Don't have an account? <a href="{% url 'signup' %}">Sign up</a></p>
 </form>
 {% endblock %}
