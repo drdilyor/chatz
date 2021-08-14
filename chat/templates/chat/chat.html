@@ -27,6 +27,7 @@
     flex-direction: column;
     align-items: flex-start;
     overflow: auto;
+    padding-top: 1em;
   }
   .message {
     margin-bottom: 1em;
@@ -72,7 +73,7 @@
 
 </style>
 <div id="app" v-cloak>
-  <div v-if="messages.length == 0">
+  <div v-if="messages == null">
     loading
   </div>
   <div v-else class="messages" ref="messages">
@@ -80,6 +81,9 @@
       <h5 class="from">${message.owner.username}</h5>
       <p class="text">${message.text}</p>
       <p class="time">${datetime(message.created_at)}</p>
+    </div>
+    <div v-if="!messages.length">
+      no messages
     </div>
   </div>
   <form class="message-form" @submit.prevent="sendMessage">
@@ -95,7 +99,7 @@ Vue.createApp({
   },
   data() {
     return {
-      messages: [],
+      messages: null,
       text: '',
       sendingMessage: null,
       toScroll: false,
@@ -110,12 +114,9 @@ Vue.createApp({
       .then(res => res.json())
       .then(data => {
         this.messages = [...this.messages, ...data]
-        if (this.$refs.messages.scrollHeight - this.$refs.messages.scrollTop
-          >= this.$refs.messages.clientHeight) {
-          // scroll to bottom
-          this.$nextTick()
-          .then(() => this.$refs.messages.scrollBy(0, 1000))
-        }
+        // scroll to bottom
+        this.$nextTick()
+        .then(() => this.$refs.messages.scrollBy(0, 1000))
         setTimeout(this.startPolling)
       }, err => alert('Network error'))
     },
