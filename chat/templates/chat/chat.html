@@ -20,7 +20,7 @@
     flex-direction: column;
     max-width: 1000px;
     margin: 0 auto;
-    padding: 1em;
+    padding: 0 1em 1em 1em;
   }
   .messages {
     display: flex;
@@ -75,7 +75,7 @@
   <div v-if="messages.length == 0">
     loading
   </div>
-  <div v-else class="messages">
+  <div v-else class="messages" ref="messages">
     <div v-for="message in messages" class="message" :key="message.time">
       <h5 class="from">${message.owner.username}</h5>
       <p class="text">${message.text}</p>
@@ -98,6 +98,7 @@ Vue.createApp({
       messages: [],
       text: '',
       sendingMessage: null,
+      toScroll: false,
     }
   },
   methods: {
@@ -109,6 +110,12 @@ Vue.createApp({
       .then(res => res.json())
       .then(data => {
         this.messages = [...this.messages, ...data]
+        if (this.$refs.messages.scrollHeight - this.$refs.messages.scrollTop
+          >= this.$refs.messages.clientHeight) {
+          // scroll to bottom
+          this.$nextTick()
+          .then(() => this.$refs.messages.scrollBy(0, 1000))
+        }
         setTimeout(this.startPolling)
       }, err => alert('Network error'))
     },
@@ -145,7 +152,7 @@ Vue.createApp({
       this.messages = data
       this.startPolling()
     }, err => alert('Network error'))
-  }
+  },
 })
 .mount('#app')
 </script>
